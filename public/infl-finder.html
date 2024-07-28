@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="MyModule">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Influencer Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script>
+        var app = angular.module("MyModule", []);
+        app.controller("myController", function ($scope, $http) {
+            $scope.jsonArrayField = [];
+            $scope.jsonArraybyFNC = [];
+
+            $scope.inflField = function () {
+                let url = "/find-influ?field=" + $scope.field;
+                $http.get(url).then(function (response) {
+                    $scope.jsonArrayField = response.data;
+                }, function (err) {
+                    alert(err);
+                });
+            };
+
+            $scope.dofind = function () {
+                let url = "/do-Find?field=" + $scope.field + "&city=" + $scope.city;
+                $http.get(url).then(function (response) {
+                    $scope.jsonArraybyFNC = response.data;
+                }, function (err) {
+                    alert(err);
+                });
+            };
+
+            $scope.doFindbyName = function () {
+                let url = "/find-by-name?name=" + $scope.name;
+                $http.get(url).then(function (response) {
+                    $scope.jsonArraybyFNC = response.data;
+                }, function (err) {
+                    alert(err);
+                });
+            };
+            $scope.showinfo = function (index) {
+                //alert(index);
+                $scope.FullObj = $scope.jsonArraybyFNC[index];
+            }
+            $scope.sendEmail = function () {
+                let url = "/send-email?email=" + $scope.FullObj.emailid;
+                $http.get(url).then(function (response) {
+                    alert(response.data);
+                }, function (err) {
+                    alert(err);
+                });
+            };
+        });
+    </script>
+</head>
+
+<body ng-controller="myController">
+    <div class="row text-white fs-1 text-center mb-5" style="background-color:rgb(123, 45, 67)">
+        <b><u>Find your Influencer</u></b>
+    </div>
+    <center>
+        <div class="row mb-3 justify-content-center">
+            <div class="col-md-1">
+                <label class="form-label"><b style="font-size: 25px;">Field:</b></label>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" ng-model="field" ng-change="inflField()">
+                    <option value="none">Select</option>
+                    <option>Gaming</option>
+                    <option>Dance</option>
+                    <option>Artist</option>
+                    <option>Singing</option>
+                    <option>Cooking</option>
+                    <option>Travel</option>
+                    <option>Fitness</option>
+                    <option>Fashion</option>
+                    <option>Beauty</option>
+                    <option>Photography</option>
+                    <option>Technology</option>
+                    <option>Education</option>
+                    <option>Comedy</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label"><b style="font-size: 25px;">Cities:</b></label>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select" ng-model="city">
+                    <option ng-repeat="obj in jsonArrayField" value="{{obj.city}}">{{obj.city}}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="button" class="btn btn-danger" value="Find by Field and City" ng-click="dofind()">
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-1">
+                <label class="form-label"><b style="font-size: 25px;">Name: </b></label>
+            </div>
+            <div class="col-md-4">
+                <input type="text" ng-model="name" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <input type="button" class="btn btn-danger" value="Find By Name" ng-click="doFindbyName()">
+            </div>
+        </div>
+        <hr>
+        <h2>
+            <u>Results</u>
+        </h2>
+        <div class="row">
+            <div class="col-md-3" ng-repeat="obj in jsonArraybyFNC">
+                <div class="card mt-5">
+                    <center> <img src="uploads/{{obj.picpath}}" alt="..." height="40%" width="40%"></center>
+                    <div class="card-body">
+                        <h5 class="card-title">Name: {{obj.iname}}</h5>
+                        <h5 class="card-title">Gender: {{obj.gender}}</h5>
+                        <h5 class="card-title">Ig: {{obj.insta}}</h5>
+                        <h5 class="card-title">City: {{obj.city}}</h5>
+                        <center><input type="button" data-bs-toggle="modal" data-bs-target="#modalDetails"
+                                class="btn btn-primary" ng-click="showinfo($index);" value="More Info"></center>
+                    </div>
+                </div>
+            </div>
+        </div>
+<!-- Modal -->
+<div class="modal fade" id="modalDetails" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">User Details</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>
+                                <p>
+                                    <img src="uploads/{{FullObj.picpath}}" alt="" height="100px;" width="100px;">
+                                    <br><br>
+                                    <b>Name: {{FullObj.iname}}</b>
+                                    <br>
+                                    {{FullObj.field}}
+                                </p>
+                            </th>
+
+                            <th>
+                                <p>
+                                    <b style="font-size: 25px;">
+                                        Instagram <i class="fa-brands fa-square-instagram fa-bounce" style="color: #bf4598;"></i>
+                                    </b><br>
+                                    <a href="">{{FullObj.insta}}</a>
+                                    <br>
+                                    <b style="font-size: 25px;">
+                                        Facebook <i class="fa-brands fa-square-facebook fa-bounce" style="color: #1982d2;"></i>
+                                    </b><br>
+                                    <a href="">{{FullObj.fb}}</a>
+                                    <br>
+                                    <b style="font-size: 25px;">
+                                        YouTube <i class="fa-brands fa-youtube fa-bounce" style="color: #d12323;"></i>
+                                    </b><br>
+                                    <a href="">{{FullObj.youtube}}</a>
+                                </p>
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="row">
+                    <table class="table table-bordered" border="2">
+                        <tr>
+                            <th>
+                                <b style="font-size: 15px;">BIO: </b>
+                                <br>
+                                {{FullObj.bio}}
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+                <div class="row">
+                    <table>
+                        <tr>
+                            <th>Email</th>
+                            <td>{{FullObj.emailid}}</td>
+                        </tr>
+                        <tr>
+                            <th>Contact Number</th>
+                            <td>{{FullObj.contact}}</td>
+                        </tr>
+                        <tr>
+                            <th>Date Of Birth</th>
+                            <td>{{FullObj.dob}}</td>
+                        </tr>
+                        <tr>
+                            <th>Gender</th>
+                            <td>{{FullObj.gender}}</td>
+                        </tr>
+                        <tr>
+                            <th>State</th>
+                            <td>{{FullObj.state}}</td>
+                        </tr>
+                        <tr>
+                            <th>City</th>
+                            <td>{{FullObj.city}}</td>
+                        </tr>
+                        <tr>
+                            <th>Address</th>
+                            <td>{{FullObj.address}}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" ng-click="sendEmail()">Send Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    </center>
+</body>
+
+</html>
