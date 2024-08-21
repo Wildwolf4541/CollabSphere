@@ -51,7 +51,7 @@
                         $("#iInsta").val(jsonAry[0].insta);
                         $("#iFacebook").val(jsonAry[0].fb);
                         $("#iYoutube").val(jsonAry[0].youtube);
-                        $("#prev").prop("src", "uploads/" + jsonAry[0].picpath);
+                        $("#prev").prop("src", jsonAry[0].picpath);
                         $("#hdn").val(jsonAry[0].picpath);
                     })
                     .fail(function (err) {

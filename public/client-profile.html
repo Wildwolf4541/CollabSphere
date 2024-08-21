@@ -49,7 +49,7 @@
                         $("#cOrg").val(jsonAry[0].org);
                         $("#cInsta").val(jsonAry[0].insta);
                         // Add handling for other social media fields like Facebook and YouTube
-                        $("#prev").prop("src", "uploads/" + jsonAry[0].picpath);
+                        $("#prev").prop("src",jsonAry[0].picpath);
                         $("#hdn").val(jsonAry[0].picpath);
                     })
                     .fail(function (err) {
