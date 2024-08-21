@@ -2,6 +2,7 @@ var express = require("express");
 var mysql2 = require("mysql2");
 var fileuploader = require("express-fileupload");
 var nodemailer = require('nodemailer');
+var cloudinary=require('cloudinary').v2;
 
 let app = express();
 
@@ -19,15 +20,22 @@ app.use(fileuploader());
 //     password: "Akhil@123",
 //     database: "project"
 // };
-let config = {
-    host: "b6onewhd3zmmpscgdlkg-mysql.services.clever-cloud.com",
-    user: "u05mic2nfin4xqr7",
-    password: "Jsbdb0ADkL0Q6lHrrpNN",
-    database: "b6onewhd3zmmpscgdlkg",
-    dateStrings:true,
-    keepAliveInitialDelay : 10000,
-    enableKeepAlive : true,
-};
+// let config = {
+//     host: "b6onewhd3zmmpscgdlkg-mysql.services.clever-cloud.com",
+//     user: "u05mic2nfin4xqr7",
+//     password: "Jsbdb0ADkL0Q6lHrrpNN",
+//     database: "b6onewhd3zmmpscgdlkg",
+//     dateStrings:true,
+//     keepAliveInitialDelay : 10000,
+//     enableKeepAlive : true,
+// };
+cloudinary.config({ 
+    cloud_name: 'drkcuob6w', 
+    api_key: '116692684632995', 
+    api_secret: 'hbVnW-7XX_F7JGNJqswfv1JRHZE' // Click 'View API Keys' above to copy your API secret
+});
+
+let config= "mysql://avnadmin:AVNS_znqbs173aIMnlxa4ROd@mysql-c487de8-guptakhil05-b2c6.i.aivencloud.com:23180/defaultdb";
 
 var mysql = mysql2.createConnection(config);
 mysql.connect(function (err) {
@@ -127,32 +135,41 @@ app.get("/infl-profile", function (req, resp) {
     let path = __dirname + "/public/infl-profile.html";
     resp.sendFile(path);
 })
-app.post("/infl-prof-save", function (req, resp) {
+app.post("/infl-prof-save", async function (req, resp) {
     let fileName;
-    if (req.files != null) {
-        fileName = req.files.ppic.name;
-        let path = __dirname + "/public/uploads/" + fileName;
-        req.files.ppic.mv(path);
-    } else {
-        fileName = "nopic.jpg";
+    try {
+        if (req.files != null) {
+            fileName = req.files.ppic.name;
+            let path = __dirname + "/public/uploads/" + fileName;
+            await req.files.ppic.mv(path);
+
+            const result = await cloudinary.uploader.upload(path);
+            fileName = result.url;
+        } else {
+            fileName = "nopic.jpg";
+        }
+
+        let fieldString = Array.isArray(req.body.iField) ? req.body.iField.toString() : req.body.iField;
+
+        mysql.query("insert into iprofile values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                req.body.iEmail, req.body.iName, req.body.iGender, req.body.iDob,
+                req.body.iContact, req.body.iAddress, req.body.iState, req.body.iCity,
+                fieldString, req.body.iInsta, req.body.iFacebook, req.body.iYoutube,
+                req.body.iBio, fileName
+            ],
+            function (err) {
+                if (err == null)
+                    resp.send("Your Profile has been saved successfully");
+                else
+                    resp.send(err.message);
+            });
+    } catch (err) {
+        console.error("Error during file upload or database operation:", err);
+        resp.status(500).send("An error occurred while saving the profile.");
     }
-
-    let fieldString = Array.isArray(req.body.iField) ? req.body.iField.toString() : req.body.iField;
-
-    mysql.query("insert into iprofile values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        [
-            req.body.iEmail, req.body.iName, req.body.iGender, req.body.iDob,
-            req.body.iContact, req.body.iAddress, req.body.iState, req.body.iCity,
-            fieldString, req.body.iInsta, req.body.iFacebook, req.body.iYoutube,
-            req.body.iBio, fileName
-        ],
-        function (err) {
-            if (err == null)
-                resp.send("Bahut Bahut Badhai.....");
-            else
-                resp.send(err.message);
-        });
 });
+
 
 app.post("/infl-prof-update", function (req, resp) {
     let fileName;
@@ -275,12 +292,16 @@ app.get("/client-profile", function (req, resp) {
     let path = __dirname + "/public/client-profile.html";
     resp.sendFile(path);
 })
-app.post("/client-prof-save", function (req, resp) {
+app.post("/client-prof-save", async function (req, resp) {
     let fileName;
+    try{
     if (req.files != null) {
         fileName = req.files.ppic.name;
         let path = __dirname + "/public/uploads/" + fileName;
-        req.files.ppic.mv(path);
+        await req.files.ppic.mv(path);
+
+            const result = await cloudinary.uploader.upload(path);
+            fileName = result.url;
     } else {
         fileName = "nopic.jpg";
     }
@@ -293,10 +314,14 @@ app.post("/client-prof-save", function (req, resp) {
         ],
         function (err) {
             if (err == null)
-                resp.send("Bahut Bahut Badhai.....");
+                resp.send("Your profile has been saved Successfully");
             else
                 resp.send(err.message);
         });
+    } catch (err) {
+        console.error("Error during file upload or database operation:", err);
+        resp.status(500).send("An error occurred while saving the profile.");
+    }
 });
 
 app.post("/client-prof-update", function (req, resp) {
